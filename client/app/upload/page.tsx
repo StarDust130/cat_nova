@@ -86,28 +86,23 @@ export default function UploadPage() {
   );
 
   return (
-    <main className="relative min-h-screen overflow-hidden">
-      <div className="absolute inset-0 grid-bg opacity-40" aria-hidden />
-      <section className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-5 pb-16 pt-10 sm:px-8 lg:px-12">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="text-xs uppercase tracking-[0.3em] text-cyan-200">
-              Upload
-            </div>
-            <h1 className="mt-2 font-heading text-3xl text-white sm:text-4xl">
-              Prep your PDFs
-            </h1>
-            <p className="mt-2 text-sm text-zinc-400 sm:text-base">
-              Drag, drop, and watch them index. Optimized for multi-file,
-              touch-friendly interactions.
-            </p>
+    <main className="relative min-h-screen overflow-hidden bg-background">
+      <div className="absolute inset-0 grid-bg opacity-25" aria-hidden />
+      <div className="absolute inset-0 scanline" aria-hidden />
+
+      <section className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-5 pb-16 pt-10 sm:px-8 lg:px-12">
+        <div>
+          <div className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-cyan-400/70 mb-3">
+            <span className="h-px w-6 bg-cyan-500/50" />
+            Initialize
           </div>
-          <Link
-            href="/chat"
-            className="hidden rounded-full border border-white/20 px-4 py-2 text-sm text-cyan-100 transition hover:border-cyan-300 hover:text-cyan-200 sm:inline-flex"
-          >
-            Go to chat →
-          </Link>
+          <h1 className="font-mono text-4xl font-black uppercase text-white">
+            Deploy Documents
+          </h1>
+          <p className="mt-3 max-w-2xl text-sm text-zinc-400">
+            Drag files to ingestion zone. Format support: PDF, DOCX, TXT, PPT.
+            No limits. Secured tunnel.
+          </p>
         </div>
 
         <motion.label
@@ -117,41 +112,45 @@ export default function UploadPage() {
           }}
           onDragLeave={() => setIsHovering(false)}
           onDrop={onDrop}
-          className="neon-border glass-panel relative flex min-h-[240px] flex-col items-center justify-center gap-3 rounded-3xl border border-dashed border-cyan-400/40 p-8 text-center shadow-xl transition duration-200"
+          className="glitch-hover relative flex min-h-[320px] flex-col items-center justify-center border border-cyan-500 bg-background/50 p-8 text-center transition"
           animate={{
             scale: isHovering ? 1.01 : 1,
-            borderColor: isHovering ? "#5ff5f9" : "rgba(255,255,255,0.2)",
+            borderColor: isHovering ? "rgb(76, 194, 255)" : "rgb(34, 89, 130)",
           }}
         >
           <input type="file" multiple className="hidden" onChange={onInput} />
           <div
-            className="absolute inset-0 rounded-3xl bg-gradient-to-b from-white/5 via-transparent to-black/30"
+            className="absolute inset-0 bg-gradient-to-b from-cyan-500/5 via-transparent to-transparent pointer-events-none"
             aria-hidden
           />
-          <div className="relative flex flex-col items-center gap-2">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-2xl text-cyan-300 shadow-inner">
-              ⬆
+          <div className="relative flex flex-col items-center gap-3">
+            <motion.div
+              className="h-12 w-12 border-2 border-cyan-500 flex items-center justify-center text-xl text-cyan-400 font-mono"
+              animate={
+                isHovering ? { scale: 1.1, rotate: 5 } : { scale: 1, rotate: 0 }
+              }
+            >
+              &gt;&gt;
+            </motion.div>
+            <div className="text-lg font-semibold uppercase text-white tracking-wide">
+              INGESTION ZONE
             </div>
-            <div className="text-xl font-semibold text-white">
-              Drag & Drop your PDFs
-            </div>
-            <p className="max-w-md text-sm text-zinc-400">
-              Touch-friendly zone with glow feedback. Drop multiple files or tap
-              to browse.
+            <p className="max-w-md text-xs text-zinc-400 font-mono">
+              Drag &amp; drop files or tap to select. Multi-format supported.
             </p>
-            <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-2 text-xs text-cyan-100">
-              Secure session · Local simulation only
+            <div className="mt-4 inline-flex items-center gap-2 border border-cyan-900/50 px-3 py-2 text-[11px] uppercase text-cyan-300 tracking-wider">
+              ◆ Encrypted tunnel
             </div>
           </div>
         </motion.label>
 
-        <div className="grid gap-4 rounded-2xl border border-white/10 bg-white/5 p-4">
-          <div className="flex items-center justify-between text-sm text-zinc-300">
-            <span className="font-semibold text-white">Uploads</span>
-            <span className="rounded-full bg-white/10 px-3 py-1 text-xs text-cyan-200">
+        <div className="border border-cyan-900/40 bg-background/50 p-4">
+          <div className="flex items-center justify-between text-xs uppercase tracking-widest text-cyan-400 mb-4">
+            <span>Upload Queue</span>
+            <span className="text-zinc-500">
               {files.length
                 ? `${files.length} file${files.length > 1 ? "s" : ""}`
-                : "Waiting for files"}
+                : "—"}
             </span>
           </div>
 
@@ -162,9 +161,9 @@ export default function UploadPage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="rounded-xl border border-dashed border-white/10 bg-black/30 p-4 text-sm text-zinc-500"
+                className="border border-dashed border-cyan-900/30 bg-black/20 p-4 text-xs text-zinc-500 font-mono"
               >
-                No files yet — drop your PDFs to begin.
+                No files queued.
               </motion.div>
             )}
 
@@ -175,30 +174,30 @@ export default function UploadPage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="flex flex-col gap-2 rounded-xl border border-white/10 bg-white/5 p-4 sm:flex-row sm:items-center sm:justify-between"
+                className="flex flex-col gap-2 border border-cyan-900/30 bg-black/30 p-3 mb-3 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="flex flex-col gap-1 text-left">
-                  <div className="text-sm font-semibold text-white">
+                  <div className="text-xs font-semibold text-cyan-300 font-mono">
                     {file.name}
                   </div>
-                  <div className="text-xs text-zinc-400">{file.size}</div>
+                  <div className="text-[11px] text-zinc-600">{file.size}</div>
                 </div>
                 <div className="flex w-full flex-col gap-2 sm:w-64">
-                  <div className="flex items-center justify-between text-xs text-zinc-400">
+                  <div className="flex items-center justify-between text-[11px] text-zinc-500 font-mono">
                     <span>
                       {file.status === "indexed"
-                        ? "Indexed"
+                        ? "[INDEXED]"
                         : file.status === "processing"
-                          ? "Processing"
-                          : "Uploading"}
+                          ? "[PROCESSING]"
+                          : "[UPLOADING]"}
                     </span>
-                    <span className="text-cyan-200">
+                    <span className="text-cyan-400">
                       {Math.round(file.progress)}%
                     </span>
                   </div>
-                  <div className="h-1.5 w-full rounded-full bg-white/10">
+                  <div className="h-1 w-full bg-cyan-900/30 border border-cyan-900/40">
                     <div
-                      className="h-full rounded-full bg-gradient-to-r from-cyan-400 via-fuchsia-500 to-red-500"
+                      className="h-full bg-cyan-500 transition-all duration-200"
                       style={{ width: `${Math.min(file.progress, 100)}%` }}
                     />
                   </div>
@@ -209,20 +208,18 @@ export default function UploadPage() {
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="text-sm text-zinc-400">
-            Ready to chat once indexing is done. Status is simulated here.
+          <div className="text-xs text-zinc-500 font-mono">
+            All files indexed before chat mode.
           </div>
           <Link
             href="/chat"
-            className={`inline-flex items-center justify-center rounded-full px-6 py-3 text-sm font-semibold transition ${
+            className={
               files.length === 0 || !allIndexed
-                ? "cursor-not-allowed border border-white/10 text-zinc-500"
-                : "bg-gradient-to-r from-cyan-400 via-fuchsia-500 to-red-500 text-black shadow-lg shadow-cyan-500/25 hover:scale-[1.01]"
-            }`}
-            aria-disabled={files.length === 0 || !allIndexed}
+                ? "border border-cyan-900/30 px-6 py-3 text-xs font-semibold uppercase tracking-wide text-zinc-600 cursor-not-allowed"
+                : "border border-cyan-500 bg-cyan-500/5 px-6 py-3 text-xs font-semibold uppercase tracking-wide text-cyan-400 transition hover:bg-cyan-500/10 hover:shadow-[0_0_20px_rgba(76,194,255,0.25)]"
+            }
           >
-            Start Chat
-            <span className="ml-2">→</span>
+            Proceed to Chat
           </Link>
         </div>
       </section>
