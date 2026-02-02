@@ -1,0 +1,183 @@
+@import "tailwindcss";
+
+:root {
+  --background: #05060a;
+  --foreground: #e9ecf5;
+  --glass: rgba(255, 255, 255, 0.05);
+  --card: rgba(255, 255, 255, 0.06);
+  --border: rgba(255, 255, 255, 0.08);
+  --accent-cyan: #5ff5f9;
+  --accent-magenta: #f45bff;
+  --accent-red: #ff4d67;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans-base);
+  --font-mono: var(--font-geist-mono);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-cyan) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    180deg,
+    var(--accent-cyan),
+    var(--accent-magenta)
+  );
+  border-radius: 9999px;
+}
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(
+      circle at 20% 20%,
+      rgba(95, 245, 249, 0.08),
+      transparent 25%
+    ),
+    radial-gradient(
+      circle at 80% 10%,
+      rgba(244, 91, 255, 0.12),
+      transparent 25%
+    ),
+    radial-gradient(
+      circle at 50% 80%,
+      rgba(255, 77, 103, 0.08),
+      transparent 25%
+    ),
+    #05060a;
+  color: var(--foreground);
+  font-family:
+    var(--font-sans-base, "Inter"),
+    system-ui,
+    -apple-system,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  position: relative;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    120deg,
+    rgba(95, 245, 249, 0.08),
+    rgba(244, 91, 255, 0.04),
+    rgba(255, 77, 103, 0.06)
+  );
+  mix-blend-mode: screen;
+  opacity: 0.65;
+  z-index: -1;
+}
+
+.glass-panel {
+  background: var(--glass);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 20px 80px rgba(0, 0, 0, 0.45);
+}
+
+.neon-border {
+  position: relative;
+  overflow: hidden;
+}
+
+.neon-border::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  border: 1px solid transparent;
+  background: linear-gradient(
+      120deg,
+      rgba(95, 245, 249, 0.8),
+      rgba(244, 91, 255, 0.8),
+      rgba(255, 77, 103, 0.7)
+    )
+    border-box;
+  mask:
+    linear-gradient(#000, #000) padding-box,
+    linear-gradient(#000, #000);
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 26px 26px;
+}
+
+.noise {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
+  mix-blend-mode: soft-light;
+  z-index: 0;
+}
+
+.glow-shadow {
+  box-shadow:
+    0 0 30px rgba(95, 245, 249, 0.25),
+    0 0 60px rgba(244, 91, 255, 0.2),
+    0 0 120px rgba(255, 77, 103, 0.18);
+}
+
+.font-heading {
+  font-family:
+    var(--font-heading, var(--font-sans-base, "Inter")), system-ui, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.chat-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(95, 245, 249, 0.7) transparent;
+}
+
+.chat-scroll::-webkit-scrollbar-thumb {
+  background: rgba(95, 245, 249, 0.6);
+}
+
+.loader-cyber {
+  position: relative;
+}
+
+.loader-cyber::before,
+.loader-cyber::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 2px solid rgba(95, 245, 249, 0.5);
+  animation: spin-slower 2.2s linear infinite;
+}
+
+.loader-cyber::after {
+  inset: 6px;
+  border-color: rgba(244, 91, 255, 0.5);
+  animation-direction: reverse;
+}
+
+@keyframes spin-slower {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
