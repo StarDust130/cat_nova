@@ -1,0 +1,31 @@
+{
+  "name": "catnova",
+  "version": "1.0.0",
+  "description": "Backend server for CatNova",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "echo \"No tests specified\" && exit 0",
+    "lint": "eslint ."
+  },
+  "keywords": [
+    "cat",
+    "nova",
+    "server"
+  ],
+  "author": "StarDust130",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/StarDust130/cat_nova.git"
+  },
+  "engines": {
+    "node": ">=14"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "nodemon": "^2.0.22",
+    "eslint": "^8.0.0"
+  }
+}
