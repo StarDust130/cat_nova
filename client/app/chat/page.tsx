@@ -1,253 +1,268 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useCallback, useRef, useState } from "react";
+import Link from "next/link";
+import { AnimatePresence, motion } from "framer-motion";
 
-const documents = [
-  { name: "Quarterly_Report.pdf", status: "Indexed" },
-  { name: "Pricing_deck.pdf", status: "Processing" },
-  { name: "API_reference.pdf", status: "Indexed" },
-];
-
-type ChatMessage = {
+type Message = {
   id: string;
-  role: "user" | "ai";
+  role: "user" | "assistant";
   content: string;
 };
 
-const starterMessages: ChatMessage[] = [
+type Document = {
+  id: string;
+  name: string;
+  status: "indexed" | "processing" | "uploading";
+};
+
+const startMessages: Message[] = [
   {
     id: "1",
-    role: "user",
-    content: "Summarize the rollout plan and highlight blockers for APAC.",
+    role: "assistant",
+    content:
+      "System initialized. Ready to interrogate documents. Supported operations: semantic search, multi-document synthesis, citation grounding. Awaiting query.",
   },
   {
     id: "2",
-    role: "ai",
+    role: "user",
+    content: "Summarize the key compliance findings across all documents.",
+  },
+  {
+    id: "3",
+    role: "assistant",
     content:
-      "Here is a concise summary:\n\n- Rollout window: Q2, staged by region with fallback to Q3.\n- Infra: latency target 120ms p99; CDN warmup scheduled.\n- Blockers: pending vendor signature (Figure 2.4) and two redlines in Security Appendix.\n\nCan I draft stakeholder updates?",
+      "Processing query across 3 documents. Retrieving relevant passages. Zero-knowledge synthesis active. — Findings: [1] Q1 audit identified 2 critical gaps in access controls. [2] Policy doc revision recommended. [3] Risk assessment escalated. Complete report ready for download.",
   },
 ];
 
+const docs: Document[] = [
+  { id: "1", name: "Q1_Audit_Report.pdf", status: "indexed" },
+  { id: "2", name: "Compliance_Policy_2024.docx", status: "indexed" },
+  { id: "3", name: "Risk_Assessment.pdf", status: "indexed" },
+];
+
 export default function ChatPage() {
-  const [messages, setMessages] = useState<ChatMessage[]>(starterMessages);
+  const [messages, setMessages] = useState<Message[]>(startMessages);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const sendMessage = () => {
-    const trimmed = input.trim();
-    if (!trimmed) return;
+  const handleSendMessage = useCallback(() => {
+    if (!input.trim() || isTyping) return;
 
-    const userMessage: ChatMessage = {
-      id: crypto.randomUUID ? crypto.randomUUID() : `user-${Date.now()}`,
+    const userMessage: Message = {
+      id: `user-${Date.now()}`,
       role: "user",
-      content: trimmed,
+      content: input.trim(),
     };
-
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsTyping(true);
 
-    setTimeout(() => {
-      const aiMessage: ChatMessage = {
-        id: crypto.randomUUID ? crypto.randomUUID() : `ai-${Date.now()}`,
-        role: "ai",
-        content:
-          "Drafting response... This is a mock reply with citations: [Section 3.1], [Table 7]. In production, this would stream token-by-token with markdown and code blocks supported.",
-      };
-      setMessages((prev) => [...prev, aiMessage]);
-      setIsTyping(false);
-    }, 900);
-  };
+    setTimeout(
+      () => {
+        const aiMessage: Message = {
+          id: `ai-${Date.now()}`,
+          role: "assistant",
+          content:
+            "Processing your query. Retrieving from indexed documents. Analyzing and synthesizing results. — Query processed successfully.",
+        };
+        setMessages((prev) => [...prev, aiMessage]);
+        setIsTyping(false);
+      },
+      1200 + Math.random() * 1200,
+    );
+  }, [input, isTyping]);
+
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLInputElement>) => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        handleSendMessage();
+      }
+    },
+    [handleSendMessage],
+  );
 
   return (
-    <main className="relative flex min-h-screen flex-col bg-gradient-to-b from-black/80 via-black/70 to-black/90">
-      <div className="absolute inset-0 grid-bg opacity-30" aria-hidden />
-      <div className="mx-auto flex w-full max-w-6xl flex-1 gap-5 px-4 pb-28 pt-8 sm:px-8">
+    <main className="relative min-h-screen overflow-hidden bg-background">
+      <div className="absolute inset-0 grid-bg opacity-25" aria-hidden />
+      <div className="absolute inset-0 scanline" aria-hidden />
+
+      <div className="relative flex h-screen flex-col lg:flex-row">
         {/* Sidebar */}
-        <aside className="hidden w-64 shrink-0 md:block">
-          <div className="glass-panel neon-border flex h-full flex-col gap-4 rounded-3xl border border-white/10 p-4">
-            <div className="text-xs uppercase tracking-[0.2em] text-cyan-200">
+        <aside
+          className={
+            drawerOpen
+              ? "fixed inset-0 z-50 flex flex-col border-r border-cyan-900/40 bg-background/95 backdrop-blur-sm lg:static lg:w-64 lg:z-auto lg:bg-transparent lg:border-r lg:border-cyan-900/40"
+              : "hidden lg:flex lg:w-64 lg:flex-col lg:border-r lg:border-cyan-900/40 lg:bg-transparent"
+          }
+        >
+          <div className="flex items-center justify-between border-b border-cyan-900/40 px-4 py-3">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-cyan-400">
               Documents
             </div>
-            <div className="flex flex-col gap-3">
-              {documents.map((doc) => (
-                <div
-                  key={doc.name}
-                  className="flex items-center justify-between rounded-2xl bg-white/5 px-3 py-3 text-sm text-white"
-                >
-                  <div className="truncate">{doc.name}</div>
-                  <span
-                    className={`rounded-full px-2 py-1 text-[11px] font-semibold ${
-                      doc.status === "Indexed"
-                        ? "bg-emerald-500/20 text-emerald-200"
-                        : "bg-amber-500/20 text-amber-100"
-                    }`}
-                  >
-                    {doc.status}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </aside>
-
-        {/* Chat */}
-        <section className="glass-panel neon-border relative flex w-full flex-col rounded-3xl border border-white/10 bg-white/5 p-4 sm:p-6">
-          <div className="flex items-center justify-between gap-3 border-b border-white/5 pb-3">
-            <div>
-              <div className="text-xs uppercase tracking-[0.25em] text-cyan-200">
-                Chat
-              </div>
-              <div className="text-lg font-semibold text-white">
-                AI PDF Copilot
-              </div>
-            </div>
             <button
-              className="md:hidden rounded-full border border-white/15 px-3 py-1 text-xs text-cyan-100"
-              onClick={() => setDrawerOpen(true)}
+              onClick={() => setDrawerOpen(false)}
+              className="lg:hidden text-cyan-400 hover:text-cyan-300 text-xl"
             >
-              Docs
+              ✕
             </button>
           </div>
 
-          <div className="mt-4 flex flex-wrap gap-2">
-            {documents.map((doc) => (
-              <span
-                key={doc.name}
-                className="rounded-full border border-white/10 bg-black/40 px-3 py-1 text-xs text-zinc-200"
+          <div className="flex-1 overflow-y-auto border-b border-cyan-900/40 px-3 py-4">
+            {docs.map((doc) => (
+              <motion.div
+                key={doc.id}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="glitch-hover mb-2 border border-cyan-900/30 bg-black/30 px-3 py-2 text-[11px] text-cyan-300 font-mono transition hover:border-cyan-500/50 hover:bg-black/50"
               >
-                {doc.name}
-              </span>
+                <div className="truncate">{doc.name}</div>
+                <div className="mt-1 text-[10px] text-zinc-600 uppercase">
+                  [{doc.status}]
+                </div>
+              </motion.div>
             ))}
           </div>
 
-          <div className="chat-scroll relative mt-4 flex-1 space-y-4 overflow-y-auto pr-1">
+          <div className="border-t border-cyan-900/40 px-4 py-3">
+            <Link
+              href="/upload"
+              className="block w-full border border-cyan-500 bg-cyan-500/5 px-3 py-2 text-center text-[11px] font-semibold uppercase tracking-wider text-cyan-400 transition hover:bg-cyan-500/10 hover:shadow-[0_0_15px_rgba(76,194,255,0.2)]"
+            >
+              Add Documents
+            </Link>
+          </div>
+        </aside>
+
+        {/* Main Chat Area */}
+        <section className="relative flex flex-1 flex-col">
+          {/* Header */}
+          <header className="border-b border-cyan-900/40 px-4 py-3 lg:px-6 lg:py-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="font-mono text-lg font-semibold uppercase text-white">
+                  Chat Session
+                </h1>
+                <p className="mt-1 text-[11px] text-zinc-500 font-mono">
+                  {docs.length} documents indexed • Zero-knowledge mode active
+                </p>
+              </div>
+              <button
+                onClick={() => setDrawerOpen(true)}
+                className="lg:hidden border border-cyan-500 px-3 py-2 text-xs font-semibold uppercase text-cyan-400 hover:bg-cyan-500/10"
+              >
+                Docs
+              </button>
+            </div>
+          </header>
+
+          {/* Messages */}
+          <div
+            ref={containerRef}
+            className="flex-1 overflow-y-auto px-4 py-6 lg:px-6 chat-scroll"
+          >
             <AnimatePresence initial={false}>
               {messages.map((message) => (
                 <motion.div
                   key={message.id}
-                  initial={{ opacity: 0, y: 8 }}
+                  layout
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  transition={{ duration: 0.2 }}
-                  className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="mb-4 flex gap-3"
                 >
+                  {message.role === "assistant" && (
+                    <div className="flex-shrink-0 h-6 w-6 border border-cyan-500 flex items-center justify-center text-[10px] font-mono text-cyan-400 bg-black/50">
+                      ■
+                    </div>
+                  )}
+
                   <div
-                    className={`max-w-[90%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-lg sm:max-w-[80%] ${
-                      message.role === "user"
-                        ? "bg-gradient-to-r from-cyan-500/70 to-fuchsia-500/70 text-black"
-                        : "glass-panel border border-white/10 bg-black/50 text-zinc-100"
-                    }`}
+                    className={
+                      message.role === "assistant"
+                        ? "flex-1 max-w-md lg:max-w-2xl border border-cyan-900/40 bg-black/30 px-4 py-3"
+                        : "ml-auto max-w-md lg:max-w-2xl border border-zinc-700 bg-zinc-900/50 px-4 py-3"
+                    }
                   >
-                    {message.content.split("\n").map((line, idx) => (
-                      <p key={idx} className="mb-1 last:mb-0">
-                        {line}
-                      </p>
-                    ))}
+                    <p
+                      className={
+                        message.role === "assistant"
+                          ? "text-sm leading-relaxed text-zinc-300 font-mono"
+                          : "text-sm leading-relaxed text-zinc-300"
+                      }
+                    >
+                      {message.content}
+                    </p>
                   </div>
+
+                  {message.role === "user" && (
+                    <div className="flex-shrink-0 h-6 w-6 border border-zinc-600 flex items-center justify-center text-[10px] font-mono text-zinc-400 bg-black/50">
+                      ◆
+                    </div>
+                  )}
                 </motion.div>
               ))}
             </AnimatePresence>
 
             {isTyping && (
-              <div className="flex items-center gap-2 text-xs text-cyan-100">
-                <div className="flex gap-1">
-                  <span className="h-2 w-2 animate-pulse rounded-full bg-cyan-300" />
-                  <span className="h-2 w-2 animate-pulse rounded-full bg-fuchsia-400 delay-100" />
-                  <span className="h-2 w-2 animate-pulse rounded-full bg-red-400 delay-200" />
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-4 flex gap-3"
+              >
+                <div className="flex-shrink-0 h-6 w-6 border border-cyan-500 flex items-center justify-center text-[10px] font-mono text-cyan-400 bg-black/50">
+                  ■
                 </div>
-                AI drafting...
-              </div>
+                <div className="border border-cyan-900/40 bg-black/30 px-4 py-3">
+                  <div className="flex gap-1">
+                    {[0, 1, 2].map((i) => (
+                      <motion.div
+                        key={i}
+                        className="h-1.5 w-1.5 bg-cyan-500 rounded-full"
+                        animate={{ opacity: [0.3, 1, 0.3] }}
+                        transition={{
+                          duration: 1.4,
+                          delay: i * 0.2,
+                          repeat: Infinity,
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
             )}
           </div>
 
-          <div className="sticky bottom-0 left-0 right-0 mt-4 rounded-2xl border border-white/10 bg-black/60 p-3">
-            <div className="flex items-center gap-2">
+          {/* Input */}
+          <div className="border-t border-cyan-900/40 bg-background/50 px-4 py-4 lg:px-6">
+            <div className="flex gap-2">
               <input
+                type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    sendMessage();
-                  }
-                }}
-                placeholder="Ask about your PDFs..."
-                className="h-12 w-full rounded-xl border border-white/10 bg-white/5 px-4 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-cyan-300"
+                onKeyDown={handleKeyDown}
+                placeholder="Query your documents..."
+                className="flex-1 border border-cyan-900/40 bg-black/50 px-4 py-3 text-sm text-cyan-300 placeholder-zinc-700 font-mono transition focus:border-cyan-500/60 focus:outline-none focus:bg-black/60"
               />
-              <motion.button
-                whileTap={{ scale: 0.98 }}
-                onClick={sendMessage}
-                className="relative inline-flex h-12 w-28 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-r from-cyan-400 via-fuchsia-500 to-red-500 text-sm font-semibold text-black shadow-lg shadow-cyan-500/25"
+              <button
+                onClick={handleSendMessage}
+                disabled={isTyping || !input.trim()}
+                className={
+                  isTyping || !input.trim()
+                    ? "border border-cyan-900/20 px-4 py-3 text-xs font-semibold uppercase text-zinc-600 cursor-not-allowed"
+                    : "border border-cyan-500 bg-cyan-500/5 px-4 py-3 text-xs font-semibold uppercase text-cyan-400 transition hover:bg-cyan-500/10 hover:shadow-[0_0_15px_rgba(76,194,255,0.2)]"
+                }
               >
-                <span
-                  className="absolute inset-0 blur-xl bg-gradient-to-r from-cyan-400 via-fuchsia-500 to-red-500 opacity-70"
-                  aria-hidden
-                />
-                <span className="relative">Send</span>
-              </motion.button>
-            </div>
-            <div className="mt-2 flex items-center justify-between text-[11px] text-zinc-500">
-              <span>Markdown, code blocks, and citations supported.</span>
-              <span>Streaming simulated.</span>
+                Send
+              </button>
             </div>
           </div>
         </section>
       </div>
-
-      <AnimatePresence>
-        {drawerOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 bg-black/70 backdrop-blur"
-            onClick={() => setDrawerOpen(false)}
-          >
-            <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", stiffness: 220, damping: 24 }}
-              className="absolute bottom-0 left-0 right-0 rounded-t-3xl border border-white/10 bg-black/90 p-6"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="mb-3 flex items-center justify-between">
-                <div className="text-sm font-semibold text-white">
-                  Documents
-                </div>
-                <button
-                  className="text-xs text-cyan-200"
-                  onClick={() => setDrawerOpen(false)}
-                >
-                  Close
-                </button>
-              </div>
-              <div className="flex flex-col gap-3">
-                {documents.map((doc) => (
-                  <div
-                    key={doc.name}
-                    className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-white"
-                  >
-                    <span className="truncate">{doc.name}</span>
-                    <span
-                      className={`rounded-full px-2 py-1 text-[11px] font-semibold ${
-                        doc.status === "Indexed"
-                          ? "bg-emerald-500/20 text-emerald-200"
-                          : "bg-amber-500/20 text-amber-100"
-                      }`}
-                    >
-                      {doc.status}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </main>
   );
 }
